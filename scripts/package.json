@@ -1,0 +1,16 @@
+{
+  "name": "dental-migration-scripts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Scripts for migrating SDD to OpenSpec with code reverse engineering",
+  "scripts": {
+    "inventory": "node code-to-inventory.js",
+    "compare": "node compare-code-vs-sdd.js",
+    "generate-specs": "node generate-openspec-from-code.js",
+    "reconstruct": "node reconstruct-history.js",
+    "migrate": "node migrate.js"
+  },
+  "dependencies": {
+    "glob": "^10.3.10"
+  }
+}

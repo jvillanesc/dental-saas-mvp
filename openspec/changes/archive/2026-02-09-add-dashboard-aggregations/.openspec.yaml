@@ -1,0 +1,23 @@
+created: 2026-02-09
+status: completed
+completed: "2026-02-09"
+description: Replace hardcoded dashboard statistics with real database aggregations
+artifacts:
+  proposal: proposal.md
+  specs:
+    - specs/dashboard/spec.md
+  design: design.md
+  tasks: tasks.md
+implementation:
+  backend:
+    - backend/src/main/java/com/dental/dto/DashboardStatsDTO.java
+    - backend/src/main/java/com/dental/service/DashboardService.java
+    - backend/src/main/java/com/dental/controller/DashboardController.java
+  frontend:
+    - frontend/src/services/dashboardService.ts
+    - frontend/src/pages/Dashboard.tsx
+results:
+  totalPatients: 3
+  activeStaff: 3
+  appointmentsToday: 3
+  appointmentsPending: 5

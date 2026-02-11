@@ -1,0 +1,48 @@
+schema: spec-driven
+
+context: |
+  Dental SaaS MVP - Multi-tenant dental clinic management system
+  
+  Technology Stack (detected from codebase):
+  - Backend: Java 21, Spring Boot 3.2.1, Spring WebFlux, R2DBC PostgreSQL
+  - Frontend: React 18.2, TypeScript 5.3, Vite 5.0, Tailwind CSS 3.4
+  - Database: PostgreSQL 15 (Docker Alpine)
+  - Build Tools: Gradle 8.5 (backend), npm/Vite (frontend)
+  
+  Critical Lessons Learned:
+  1. BCrypt Password: Use hash $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy for "password123"
+  2. Users and Staff MUST be separate entities (User = login account, Staff = medical personnel)
+  3. JWT secret must be ≥256 bits for HS256 algorithm
+  4. Database initialization: Only docker/postgres/init.sql, set spring.sql.init.mode=never
+  5. Staff without user accounts cannot have appointments (dentist_id links to staff with user_id)
+  6. Soft deletes use deletedAt timestamp, not boolean deleted flag
+  7. Always use path.join() or path.resolve() for cross-platform file paths
+  
+  Security Warning:
+  ⚠️ JWT authentication is implemented but NOT enforced. SecurityConfig has permitAll() 
+  allowing unauthenticated access. This is a critical security issue that must be fixed.
+
+rules:
+  specs:
+    - Every requirement MUST specify multi-tenant behavior (tenantId isolation)
+    - Include soft delete scenarios for Patient and Staff entities
+    - Use RFC 2119 keywords: SHALL (absolute requirement), MUST (security/critical), SHOULD (recommended)
+    - Scenarios must be testable with Given/When/Then format
+    - Never include implementation code in specs (keep declarative)
+  
+  tasks:
+    - Always test with multiple tenants to verify data isolation
+    - Validate JWT tokens before accessing protected resources
+    - Use BCrypt for password hashing (never plain text, never manual hashes)
+    - Test R2DBC queries with actual database (no mocking for integration tests)
+    - Verify CORS settings allow only trusted origins
+  
+  design:
+    - Prefer reactive types (Mono<T>, Flux<T>) over blocking operations
+    - Repository methods MUST return reactive types
+    - Use @Query annotation for complex R2DBC queries (derived queries have limited support)
+    - DTO pattern: Separate CreateXDTO and UpdateXDTO from entity models
+    - Never expose entity objects directly via REST endpoints
+    - Controller → Service → Repository layering is mandatory
+    - All entities with tenantId MUST filter by tenant in queries
+    - Password handling: BCrypt strength 10, never log or return passwords

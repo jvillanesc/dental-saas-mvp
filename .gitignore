@@ -1,0 +1,98 @@
+# ============================================
+# Root .gitignore for Dental SaaS MVP
+# ============================================
+
+# Local development files
+login.json
+login2.json
+build.bat
+*.rar
+*.zip
+
+# Generated inventory
+openspec/CODE_INVENTORY.json
+
+# IDE - Root level
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+.cache/
+
+# Package manager locks (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Test coverage
+coverage/
+*.lcov
+
+# ============================================
+# Backend specific (Java/Gradle)
+# ============================================
+backend/.gradle/
+backend/build/
+backend/bin/
+backend/out/
+backend/.idea/
+backend/*.iml
+backend/gradle-8.5/
+backend/spring-boot-starter-parent/
+
+# ============================================
+# Frontend specific (React/Node)
+# ============================================
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+
+# ============================================
+# Scripts specific (Node)
+# ============================================
+scripts/node_modules/
+scripts/dist/
+
+# ============================================
+# Docker
+# ============================================
+# docker/volumes/  # Uncomment if you create volume mounts
+# .docker/         # Uncomment if you have local Docker configs
+
+# ============================================
+# CI/CD
+# ============================================
+# .github/workflows/*.local.yml  # Local workflow testing

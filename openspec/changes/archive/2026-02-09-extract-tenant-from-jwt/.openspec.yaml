@@ -1,0 +1,76 @@
+changeName: extract-tenant-from-jwt
+status: completed
+created: "2026-02-09"
+completed: "2026-02-09"
+description: |
+  Extract tenantId dynamically from JWT token to enable true multi-tenant isolation.
+  Currently all controllers use hardcoded tenantId, preventing multiple tenants from using the system.
+  This change also enforces JWT security by removing .permitAll() from SecurityConfig.
+
+context:
+  problem: |
+    - DashboardController and all other controllers have hardcoded tenantId
+    - JWT infrastructure exists but SecurityConfig has .permitAll(), allowing unauthenticated access
+    - Multi-tenant data isolation cannot work with hardcoded tenant IDs
+    - Security is effectively disabled despite having JWT authentication
+  
+  objectives:
+    - Extract tenantId from JWT claims in all controllers
+    - Enable SecurityConfig to enforce JWT validation
+    - Update JwtUtil to include tenantId in JWT payload
+    - Create TenantContext utility for reactive context propagation
+    - Test with both tenants (Clínica ABC and Dental Care Premium)
+  
+  scope:
+    affected:
+      - SecurityConfig (enable JWT enforcement)
+      - JwtUtil (add tenantId claim)
+      - All Controllers (extract tenantId from JWT)
+      - AuthController (include tenantId in token generation)
+    
+    related-specs:
+      - specs/auth/spec.md
+      - specs/security/spec.md (new)
+      - specs/tenant/spec.md
+
+priority: critical
+impacts:
+  - security: "Enables proper authentication and authorization"
+  - multi-tenancy: "Enables true tenant isolation"
+  - all-features: "Affects all API endpoints"
+
+implementation:
+  files-created:
+    - backend/src/main/java/com/dental/security/TenantContext.java
+    - backend/src/main/java/com/dental/security/JwtAuthenticationFilter.java
+  
+  files-modified:
+    - backend/src/main/java/com/dental/config/SecurityConfig.java
+    - backend/src/main/java/com/dental/controller/DashboardController.java
+    - backend/src/main/java/com/dental/controller/PatientController.java
+    - backend/src/main/java/com/dental/controller/UserController.java
+    - backend/src/main/java/com/dental/controller/StaffController.java
+    - backend/src/main/java/com/dental/controller/AppointmentController.java
+    - backend/src/main/java/com/dental/controller/DentistController.java
+    - openspec/project.md
+
+test-results:
+  tenant-clinica-abc:
+    tenantId: "550e8400-e29b-41d4-a716-446655440000"
+    totalPatients: 3
+    activeStaff: 3
+    appointmentsToday: 3
+    appointmentsPending: 5
+  
+  tenant-dental-care:
+    tenantId: "550e8400-e29b-41d4-a716-446655440001"
+    totalPatients: 4
+    activeStaff: 4
+    appointmentsToday: 0
+    appointmentsPending: 1
+
+lessons-learned:
+  - JWT infrastructure was already complete, only needed context propagation
+  - Reactor Context perfect for tenant isolation in reactive applications
+  - Code simplification: removed ~120 lines, added ~60 lines (net -60 lines)
+  - Multi-tenant testing easy with two seeded tenants

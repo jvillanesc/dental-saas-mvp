@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: dental-postgres
+    environment:
+      POSTGRES_DB: dental_db
+      POSTGRES_USER: dental_user
+      POSTGRES_PASSWORD: dental_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dental-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dental-network:
+    driver: bridge
