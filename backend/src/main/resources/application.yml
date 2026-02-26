@@ -1,18 +1,18 @@
 spring:
   application:
     name: dental-saas-backend
-  
+
   r2dbc:
     url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:dental_db}
     username: ${DB_USER:dental_user}
     password: ${DB_PASSWORD:dental_pass}
     properties:
       schema: public
-  
+
   sql:
     init:
       mode: never
-  
+
   security:
     user:
       name: admin
@@ -27,6 +27,6 @@ jwt:
 
 logging:
   level:
-    root: INFO
+    root: DEBUG
     com.dental: DEBUG
     io.r2dbc.postgresql: DEBUG
