@@ -10,6 +10,12 @@ fi
 
 # ── Limpiar trailing slash de BACKEND_URL ─────────────────────────────────
 BACKEND_URL="${BACKEND_URL%/}"
+
+# ── Asegurar que BACKEND_URL tenga protocolo (http:// o https://) ─────────
+if [[ "$BACKEND_URL" != http://* ]] && [[ "$BACKEND_URL" != https://* ]]; then
+  BACKEND_URL="http://$BACKEND_URL"
+fi
+
 export BACKEND_URL
 
 # ── Usar el puerto inyectado por la plataforma o 80 por defecto ───────────
