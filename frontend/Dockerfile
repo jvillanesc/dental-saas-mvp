@@ -27,9 +27,9 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copiar la plantilla de nginx (con ${BACKEND_URL} como variable)
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Copiar el script de entrada
+# Copiar el script de entrada (y eliminar CRLF por si fue editado en Windows)
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN sed -i 's/\r//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 # Puerto expuesto (Railway/AWS/DO inyectan $PORT)
 EXPOSE 80
