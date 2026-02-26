@@ -27,6 +27,6 @@ jwt:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
     com.dental: DEBUG
     io.r2dbc.postgresql: DEBUG
