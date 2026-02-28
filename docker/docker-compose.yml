@@ -15,6 +15,34 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - dental-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dental_user -d dental_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: dental-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dental_db
+      DB_USER: dental_user
+      DB_PASSWORD: dental_pass
+      PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:-mySecretKeyForJWTTokenGenerationThatShouldBeAtLeast256BitsLongForHS256Algorithm}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5173}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dental-network
+    restart: on-failure
 
 volumes:
   postgres_data:

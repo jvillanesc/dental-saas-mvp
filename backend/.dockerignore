@@ -1,0 +1,25 @@
+# Gradle build output y cache
+build/
+.gradle/
+bin/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Scripts de desarrollo local
+run-backend.sh
+run-backend.ps1
+
+# Test results
+test-results/
