@@ -5,6 +5,7 @@ import MainLayout from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PatientsPage from './pages/patients/PatientsPage';
+import PatientDetailPage from './pages/patients/PatientDetailPage';
 import StaffPage from './pages/staff/StaffPage';
 import AppointmentsPage from './pages/appointments/AppointmentsPage';
 import UsersPage from './pages/users/UsersPage';
@@ -73,6 +74,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <PatientsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/patients/:patientId/detail',
+    element: (
+      <ProtectedRoute>
+        <PatientDetailPage />
       </ProtectedRoute>
     ),
   },

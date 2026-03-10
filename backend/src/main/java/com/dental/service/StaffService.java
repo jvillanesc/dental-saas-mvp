@@ -32,6 +32,11 @@ public class StaffService {
                 .map(this::toDTO);
     }
     
+    public Flux<StaffDTO> getActiveStaff(UUID tenantId) {
+        return staffRepository.findByTenantAndActive(tenantId, true)
+                .map(this::toDTO);
+    }
+    
     public Mono<StaffDTO> getStaffById(UUID id, UUID tenantId) {
         return staffRepository.findByIdAndTenantIdAndNotDeleted(id, tenantId)
                 .map(this::toDTO);

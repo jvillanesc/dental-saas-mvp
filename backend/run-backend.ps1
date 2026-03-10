@@ -7,6 +7,9 @@
 #   .\run-backend.ps1 -Run      → Solo ejecución (sin rebuild)
 #   .\run-backend.ps1 -Clean    → Limpiar build
 # ==============================================================================
+# NOTA: Este script requiere JDK 21 configurado en JAVA_HOME
+#       o en gradle.properties.local
+# ==============================================================================
 
 param(
     [switch]$Build,
@@ -14,9 +17,36 @@ param(
     [switch]$Clean
 )
 
-# Configurar JAVA_HOME para JDK 21
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot"
-$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+# ==============================================================================
+# Priorizar gradle.properties.local sobre JAVA_HOME
+# ==============================================================================
+
+# Verificar si existe gradle.properties.local y extraer JDK path
+if (Test-Path "gradle.properties.local") {
+    $gradlePropsContent = Get-Content "gradle.properties.local" -Raw
+    if ($gradlePropsContent -match "org\.gradle\.java\.home\s*=\s*(.+)") {
+        $jdkPath = $matches[1].Trim()
+        # Normalizar path (convertir / a \)
+        $jdkPath = $jdkPath -replace "/", "\"
+        
+        if (Test-Path $jdkPath) {
+            $env:JAVA_HOME = $jdkPath
+            $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+            Write-Host "✅ Usando JDK configurado en gradle.properties.local" -ForegroundColor Green
+        } else {
+            Write-Host "⚠️  JDK en gradle.properties.local no existe: $jdkPath" -ForegroundColor Yellow
+            Write-Host "   Ejecuta: ..\setup-java.ps1" -ForegroundColor Yellow
+            exit 1
+        }
+    }
+} elseif (-not $env:JAVA_HOME) {
+    Write-Host "⚠️  JAVA_HOME no está configurado" -ForegroundColor Yellow
+    Write-Host "   Ejecuta primero: ..\setup-java.ps1" -ForegroundColor Yellow
+    Write-Host ""
+    exit 1
+} else {
+    $env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
+}
 
 # Banner
 Write-Host ""
@@ -25,18 +55,6 @@ Write-Host "  🦷 Dental SaaS Backend Runner" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "📍 JDK: $env:JAVA_HOME" -ForegroundColor Yellow
 Write-Host "🔧 Gradle: 8.5" -ForegroundColor Yellow
-Write-Host ""
-
-# Verificar que JDK existe
-if (-not (Test-Path "$env:JAVA_HOME\bin\java.exe")) {
-    Write-Host "❌ ERROR: No se encuentra Java en $env:JAVA_HOME" -ForegroundColor Red
-    Write-Host "   Verifica que el JDK 21 esté instalado correctamente" -ForegroundColor Red
-    exit 1
-}
-
-# Verificar versión de Java
-Write-Host "☕ Verificando versión de Java..." -ForegroundColor Cyan
-& "$env:JAVA_HOME\bin\java.exe" -version
 Write-Host ""
 
 # Si no se especifica ningún parámetro, hacer Build + Run

@@ -8,6 +8,8 @@ login2.json
 build.bat
 *.rar
 *.zip
+setup-java.ps1
+setup-java.sh
 
 # Generated inventory
 openspec/CODE_INVENTORY.json

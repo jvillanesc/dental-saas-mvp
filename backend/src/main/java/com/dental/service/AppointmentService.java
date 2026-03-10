@@ -37,6 +37,11 @@ public class AppointmentService {
                 .flatMap(this::toDTOWithRelations);
     }
     
+    public Flux<AppointmentDTO> getAppointments(UUID tenantId, UUID dentistId, LocalDateTime startDate, LocalDateTime endDate) {
+        return appointmentRepository.findByTenantAndFilters(tenantId, dentistId, startDate, endDate)
+                .flatMap(this::toDTOWithRelations);
+    }
+    
     public Mono<AppointmentDTO> getAppointmentById(UUID id, UUID tenantId) {
         return appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .flatMap(this::toDTOWithRelations);
@@ -78,6 +83,17 @@ public class AppointmentService {
         return appointmentRepository.findByIdAndTenantId(id, tenantId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Appointment not found")))
                 .flatMap(appointmentRepository::delete);
+    }
+    
+    public Mono<AppointmentDTO> updateStatus(UUID id, String newStatus, UUID tenantId) {
+        return appointmentRepository.findByIdAndTenantId(id, tenantId)
+                .switchIfEmpty(Mono.error(new RuntimeException("Appointment not found")))
+                .flatMap(appointment -> {
+                    appointment.setStatus(newStatus);
+                    appointment.setUpdatedAt(LocalDateTime.now());
+                    return appointmentRepository.save(appointment);
+                })
+                .flatMap(this::toDTOWithRelations);
     }
     
     private Mono<AppointmentDTO> toDTOWithRelations(Appointment appointment) {

@@ -37,18 +37,26 @@ public class JwtAuthenticationFilter implements WebFilter {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getPath().value();
         
-        // Skip JWT validation for public endpoints
+        // Skip JWT validation ONLY for authentication endpoints
         if (path.startsWith("/api/auth/")) {
             log.debug("Skipping JWT validation for public endpoint: {}", path);
             return chain.filter(exchange);
         }
         
+        // Skip JWT validation for specific test endpoints that don't need auth
+        if (path.equals("/api/test/check-password") || path.equals("/api/test/generate-hash")) {
+            log.debug("Skipping JWT validation for test utility endpoint: {}", path);
+            return chain.filter(exchange);
+        }
+        
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         
-        // For now, allow requests without token (backwards compatibility during migration)
-        // TODO: Change to return 401 once all endpoints are updated
+        // Check if Authorization header is present
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("No JWT token provided for: {}", path);
+            log.warn("⚠️ No JWT token provided for protected endpoint: {}", path);
+            log.warn("⚠️ Request will fail if it requires tenant context!");
+            log.warn("⚠️ Authorization header: {}", authHeader != null ? "present but invalid format" : "missing");
+            // For backwards compatibility, allow the request to continue (will fail at tenant context check)
             return chain.filter(exchange);
         }
         
@@ -63,7 +71,8 @@ public class JwtAuthenticationFilter implements WebFilter {
             UUID tenantId = jwtUtil.getTenantIdFromToken(token);
             String role = jwtUtil.getRoleFromToken(token);
             
-            log.debug("JWT validated - userId: {}, tenantId: {}, role: {}", userId, tenantId, role);
+            log.info("✅ JWT validated successfully - Path: {}, UserId: {}, TenantId: {}, Role: {}", 
+                    path, userId, tenantId, role);
             
             // Create authentication with role
             UsernamePasswordAuthenticationToken authentication = 
@@ -79,7 +88,9 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .contextWrite(TenantContext.withTenantId(tenantId));
                 
         } catch (Exception e) {
-            log.error("JWT validation failed for path: {} - Error: {}", path, e.getMessage());
+            log.error("❌ JWT validation failed for path: {} - Error: {}", path, e.getMessage());
+            log.error("❌ Token sample (first 50 chars): {}", 
+                    token.length() > 50 ? token.substring(0, 50) + "..." : token);
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }

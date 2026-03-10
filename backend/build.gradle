@@ -41,9 +41,11 @@ dependencies {
     // Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     
-    // Lombok (opcional)
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    // Lombok - Version compatible with Java 21
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
     
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -52,4 +54,13 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Configure Java compilation for Lombok compatibility
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += [
+        '-parameters',
+        '-Xlint:unchecked',
+        '-Xlint:deprecation'
+    ]
 }

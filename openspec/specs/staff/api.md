@@ -9,13 +9,20 @@ REST API endpoints for staff management.
 ## Requirements
 
 ### Requirement: Staff Retrieval
-The system SHALL provide endpoints to retrieve staff data.
+The system SHALL provide endpoints to retrieve staff data with filtering capabilities.
 
 #### Scenario: List all staff
 - GIVEN an authenticated user
 - WHEN GET /api/staff/ is requested
 - THEN all staff for the user's tenant are returned
 - AND each item includes complete details
+
+#### Scenario: List active staff
+- GIVEN an authenticated user
+- WHEN GET /api/staff?active=true is requested
+- THEN only active staff (active=true AND deletedAt IS NULL) are returned
+- AND staff belong to the user's tenant
+- AND results are ordered by lastName, firstName
 
 #### Scenario: Get single staff by ID
 - GIVEN an authenticated user

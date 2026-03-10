@@ -24,9 +24,16 @@ public class StaffController {
     }
     
     @GetMapping
-    public Mono<ResponseEntity<List<StaffDTO>>> getAllStaff() {
+    public Mono<ResponseEntity<List<StaffDTO>>> getAllStaff(
+            @RequestParam(required = false) Boolean active) {
         return TenantContext.getTenantId()
-                .flatMapMany(tenantId -> staffService.getAllStaff(tenantId))
+                .flatMapMany(tenantId -> {
+                    if (Boolean.TRUE.equals(active)) {
+                        return staffService.getActiveStaff(tenantId);
+                    } else {
+                        return staffService.getAllStaff(tenantId);
+                    }
+                })
                 .collectList()
                 .map(ResponseEntity::ok);
     }

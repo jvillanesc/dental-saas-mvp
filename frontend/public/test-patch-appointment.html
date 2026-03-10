@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test PATCH Appointment Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #2196F3;
+        }
+        .token-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.secondary {
+            background: #2196F3;
+        }
+        button.secondary:hover {
+            background: #0b7dda;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #da190b;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        .code {
+            background: #282c34;
+            color: #61dafb;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 5px;
+        }
+        .badge.get { background: #61affe; color: white; }
+        .badge.post { background: #49cc90; color: white; }
+        .badge.patch { background: #fca130; color: white; }
+        .badge.delete { background: #f93e3e; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test PATCH Appointment Status</h1>
+        
+        <div class="section">
+            <h3>📋 Token Actual</h3>
+            <div class="token-info" id="tokenInfo">
+                <p><strong>Token:</strong> <span id="tokenValue">No token found</span></p>
+                <p><strong>TenantId:</strong> <span id="tenantIdValue">-</span></p>
+                <p><strong>Role:</strong> <span id="roleValue">-</span></p>
+                <p><strong>Email:</strong> <span id="emailValue">-</span></p>
+            </div>
+            <button onclick="reloadToken()">🔄 Recargar Token</button>
+            <button class="danger" onclick="clearToken()">🗑️ Borrar Token</button>
+        </div>
+
+        <div class="section">
+            <h3>🎯 Configurar Request</h3>
+            <label for="appointmentId">Appointment ID:</label>
+            <input type="text" id="appointmentId" placeholder="Ej: 123e4567-e89b-12d3-a456-426614174000">
+            
+            <label for="newStatus">Nuevo Estado:</label>
+            <select id="newStatus">
+                <option value="SCHEDULED">SCHEDULED</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="IN_PROGRESS">IN_PROGRESS</option>
+                <option value="COMPLETED">COMPLETED</option>
+                <option value="CANCELLED">CANCELLED</option>
+                <option value="NO_SHOW">NO_SHOW</option>
+            </select>
+
+            <button class="secondary" onclick="testPatchRequest()">
+                <span class="badge patch">PATCH</span> Probar Request
+            </button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function decodeJWT(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+                ).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error decoding JWT:', e);
+                return null;
+            }
+        }
+
+        function reloadToken() {
+            const token = localStorage.getItem('token');
+            const tokenValue = document.getElementById('tokenValue');
+            const tenantIdValue = document.getElementById('tenantIdValue');
+            const roleValue = document.getElementById('roleValue');
+            const emailValue = document.getElementById('emailValue');
+
+            if (!token) {
+                tokenValue.textContent = 'No token found in localStorage';
+                tenantIdValue.textContent = '-';
+                roleValue.textContent = '-';
+                emailValue.textContent = '-';
+                return null;
+            }
+
+            tokenValue.textContent = token.substring(0, 50) + '...';
+            
+            const payload = decodeJWT(token);
+            if (payload) {
+                tenantIdValue.textContent = payload.tenantId || 'No tenantId';
+                roleValue.textContent = payload.role || 'No role';
+                emailValue.textContent = payload.email || 'No email';
+            }
+
+            return token;
+        }
+
+        function clearToken() {
+            if (confirm('¿Borrar el token del localStorage?')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                reloadToken();
+            }
+        }
+
+        async function testPatchRequest() {
+            const resultsDiv = document.getElementById('results');
+            const appointmentId = document.getElementById('appointmentId').value.trim();
+            const newStatus = document.getElementById('newStatus').value;
+            const token = localStorage.getItem('token');
+
+            resultsDiv.innerHTML = '<div class="warning">⏳ Enviando request...</div>';
+
+            if (!appointmentId) {
+                resultsDiv.innerHTML = '<div class="error">❌ Debes ingresar un Appointment ID</div>';
+                return;
+            }
+
+            if (!token) {
+                resultsDiv.innerHTML = '<div class="error">❌ No hay token en localStorage. Inicia sesión primero.</div>';
+                return;
+            }
+
+            const url = `http://localhost:8080/api/appointments/${appointmentId}/status`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            };
+            const body = { status: newStatus };
+
+            let html = '<div class="section"><h3>📤 Request Details</h3>';
+            html += `<p><strong>URL:</strong> <span class="badge patch">PATCH</span> ${url}</p>`;
+            html += '<p><strong>Headers:</strong></p>';
+            html += '<div class="code"><pre>' + JSON.stringify(headers, null, 2) + '</pre></div>';
+            html += '<p><strong>Body:</strong></p>';
+            html += '<div class="code"><pre>' + JSON.stringify(body, null, 2) + '</pre></div>';
+            html += '</div>';
+
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'PATCH',
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+                const duration = Date.now() - startTime;
+
+                html += '<div class="section"><h3>📥 Response Details</h3>';
+                html += `<p><strong>Status:</strong> ${response.status} ${response.statusText}</p>`;
+                html += `<p><strong>Duration:</strong> ${duration}ms</p>`;
+                html += '<p><strong>Headers:</strong></p>';
+                html += '<div class="code"><pre>';
+                response.headers.forEach((value, key) => {
+                    html += `${key}: ${value}\n`;
+                });
+                html += '</pre></div>';
+
+                let responseData;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                    html += '<p><strong>Body (JSON):</strong></p>';
+                    html += '<div class="code"><pre>' + JSON.stringify(responseData, null, 2) + '</pre></div>';
+                } else {
+                    responseData = await response.text();
+                    html += '<p><strong>Body (Text):</strong></p>';
+                    html += '<div class="code"><pre>' + (responseData || '[Empty response]') + '</pre></div>';
+                }
+
+                if (response.ok) {
+                    html += '<div class="success">✅ Request exitosa! El estado se actualizó correctamente.</div>';
+                } else {
+                    html += `<div class="error">❌ Request falló con status ${response.status}<br>`;
+                    html += '<strong>Posibles causas:</strong><ul>';
+                    if (response.status === 401) {
+                        html += '<li>Token expirado o inválido - necesitas iniciar sesión nuevamente</li>';
+                    } else if (response.status === 403) {
+                        html += '<li>🔍 El JWT filter NO procesó el token (tenantId no encontrado en contexto)</li>';
+                        html += '<li>🔍 Verifica los logs del backend para ver si hay warnings ⚠️</li>';
+                        html += '<li>🔍 Asegúrate de que el backend se reinició con el código actualizado</li>';
+                    } else if (response.status === 404) {
+                        html += '<li>Appointment no encontrado o no pertenece a tu tenant</li>';
+                    } else if (response.status === 500) {
+                        html += '<li>Error interno del servidor - revisa los logs del backend</li>';
+                    }
+                    html += '</ul></div>';
+                }
+                html += '</div>';
+
+            } catch (error) {
+                html += '<div class="error">';
+                html += '<h3>❌ Network Error</h3>';
+                html += `<p><strong>Error:</strong> ${error.message}</p>`;
+                html += '<p><strong>Posibles causas:</strong></p>';
+                html += '<ul>';
+                html += '<li>Backend no está corriendo en http://localhost:8080</li>';
+                html += '<li>CORS no configurado correctamente</li>';
+                html += '<li>Network timeout o connectivity issue</li>';
+                html += '</ul>';
+                html += '</div>';
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        // Load token on page load
+        window.onload = function() {
+            reloadToken();
+        };
+    </script>
+</body>
+</html>

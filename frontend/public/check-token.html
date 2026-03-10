@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Token JWT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Verificador de Token JWT</h1>
+        
+        <div id="status"></div>
+        
+        <div class="info-section">
+            <h3>Token Actual:</h3>
+            <pre id="token-display">Cargando...</pre>
+        </div>
+        
+        <div class="info-section">
+            <h3>Payload Decodificado:</h3>
+            <pre id="payload-display">Cargando...</pre>
+        </div>
+        
+        <div class="info-section">
+            <h3>Usuario Actual:</h3>
+            <pre id="user-display">Cargando...</pre>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button onclick="location.reload()">🔄 Recargar</button>
+            <button class="danger" onclick="clearAuth()">🗑️ Borrar Token y Usuario</button>
+            <button onclick="testBackend()">🧪 Probar Backend</button>
+        </div>
+        
+        <div id="test-result" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function checkToken() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            const statusDiv = document.getElementById('status');
+            
+            if (!token) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ NO HAY TOKEN - No estás autenticado';
+                document.getElementById('token-display').textContent = 'null';
+                document.getElementById('payload-display').textContent = 'No hay token para decodificar';
+                document.getElementById('user-display').textContent = user || 'null';
+                return;
+            }
+            
+            try {
+                // Decodificar el payload del token (segunda parte)
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    throw new Error('Token inválido (formato incorrecto)');
+                }
+                
+                const payload = JSON.parse(atob(parts[1]));
+                
+                // Verificar si tiene tenantId
+                if (payload.tenantId) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ TOKEN VÁLIDO - Contiene tenantId';
+                } else {
+                    statusDiv.className = 'status warning';
+                    statusDiv.innerHTML = '⚠️ TOKEN SIN TENANT - Necesitas hacer logout/login';
+                }
+                
+                // Mostrar token (primeros y últimos caracteres)
+                const tokenPreview = token.length > 100 
+                    ? token.substring(0, 50) + '\n...\n' + token.substring(token.length - 50)
+                    : token;
+                document.getElementById('token-display').textContent = tokenPreview;
+                
+                // Mostrar payload
+                document.getElementById('payload-display').textContent = JSON.stringify(payload, null, 2);
+                
+                // Mostrar usuario
+                document.getElementById('user-display').textContent = user 
+                    ? JSON.stringify(JSON.parse(user), null, 2)
+                    : 'No hay información de usuario guardada';
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ ERROR - Token corrupto o inválido: ' + error.message;
+                document.getElementById('token-display').textContent = token.substring(0, 100) + '...';
+                document.getElementById('payload-display').textContent = 'Error al decodificar: ' + error.message;
+            }
+        }
+        
+        function clearAuth() {
+            if (confirm('¿Seguro que quieres borrar el token y usuario?\n\nTendrás que volver a hacer login.')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                location.reload();
+            }
+        }
+        
+        async function testBackend() {
+            const resultDiv = document.getElementById('test-result');
+            resultDiv.innerHTML = '<div class="info-section"><h3>Probando conexión con backend...</h3></div>';
+            
+            try {
+                const token = localStorage.getItem('token');
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch('http://localhost:8080/api/test/tenant-context', {
+                    headers
+                });
+                
+                const data = await response.json();
+                
+                let statusClass = data.success ? 'success' : 'error';
+                let icon = data.success ? '✅' : '❌';
+                
+                resultDiv.innerHTML = `
+                    <div class="status ${statusClass}">
+                        ${icon} Backend Response (Status: ${response.status})
+                    </div>
+                    <div class="info-section">
+                        <h3>Respuesta del Backend:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ Error de Conexión
+                    </div>
+                    <div class="info-section">
+                        <h3>Error:</h3>
+                        <pre>${error.message}\n\n¿Está el backend corriendo en http://localhost:8080?</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        // Ejecutar al cargar la página
+        checkToken();
+    </script>
+</body>
+</html>

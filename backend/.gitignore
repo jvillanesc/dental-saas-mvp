@@ -5,9 +5,6 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-# Gradle properties (configuraciones locales)
-gradle.properties
-
 # IntelliJ IDEA
 .idea/
 *.iml
@@ -38,3 +35,6 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Local Gradle config (per-developer JDK settings)
+gradle.properties.local

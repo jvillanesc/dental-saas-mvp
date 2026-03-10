@@ -1,15 +1,23 @@
 import api from './api';
 import { Appointment, CreateAppointmentDTO, UpdateAppointmentDTO } from '../types/appointment.types';
 
+interface AppointmentFilters {
+  dentistId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const appointmentService = {
-  getAll: async (): Promise<Appointment[]> => {
-    const response = await api.get('/appointments');
+  getAll: async (filters?: AppointmentFilters): Promise<Appointment[]> => {
+    const response = await api.get('/appointments', {
+      params: filters,
+    });
     return response.data;
   },
 
-  getByDateRange: async (startDate: string, endDate: string): Promise<Appointment[]> => {
+  getByDateRange: async (startDate: string, endDate: string, dentistId?: string): Promise<Appointment[]> => {
     const response = await api.get('/appointments', {
-      params: { startDate, endDate },
+      params: { startDate, endDate, dentistId },
     });
     return response.data;
   },
@@ -31,5 +39,10 @@ export const appointmentService = {
 
   delete: async (id: string): Promise<void> => {
     await api.delete(`/appointments/${id}`);
+  },
+
+  updateStatus: async (id: string, status: string): Promise<Appointment> => {
+    const response = await api.patch(`/appointments/${id}/status`, { status });
+    return response.data;
   },
 };

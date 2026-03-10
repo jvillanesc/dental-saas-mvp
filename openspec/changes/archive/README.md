@@ -56,6 +56,51 @@ Each archived change is stored in a dated directory: `YYYY-MM-DD-change-name/`
 
 ---
 
+### 2026-03-03: Quick Appointment Status Change
+
+**Status**: ✅ Completed  
+**Description**: Implemented quick status change functionality for appointments in the calendar
+
+**Impact**:
+- ✅ Modal UI for quick status updates (click appointment → select status → save)
+- ✅ PATCH /api/appointments/{id}/status endpoint with tenant isolation
+- ✅ CORS configuration fixed to allow PATCH method
+- ✅ Lombok updated to version 1.18.30 (Java 21 compatible)
+- ✅ JWT warnings resolved (updated to modern JJWT APIs)
+- ✅ Enhanced logging with emoji markers for debugging
+- ✅ Color-coded status badges (SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW)
+
+**Files Changed**: 4 created, 6 modified  
+**Implementation Time**: ~5 hours  
+
+[View Details](quick-appointment-status-change/)
+
+---
+
+### 2026-03-10: Patient Medical History Registration
+
+**Status**: ✅ Completed  
+**Description**: Comprehensive medical history system with 30+ fields, multi-tab interface, and full CRUD operations
+
+**Impact**:
+- ✅ "Ver Detalle" button in patient grid (green styled)
+- ✅ Tab-based patient detail page (Historia Clínica, Odontograma, Ortodoncia)
+- ✅ Complete medical history form with 6 logical sections
+- ✅ Multi-tenant isolation with one history per patient per tenant
+- ✅ Reactive backend with R2DBC (Spring Boot WebFlux)
+- ✅ TypeScript frontend with React 18 and Tailwind CSS
+- ✅ Soft delete support with audit timestamps
+- ✅ Form reorganization based on user feedback
+- ✅ Removed dailyBrushingDetail field completely (all layers)
+- ✅ Logging level changed to INFO
+
+**Files Changed**: 11 created, 3 modified  
+**Implementation Time**: ~4 hours  
+
+[View Full Summary](add-patient-medical-history/SUMMARY.md)
+
+---
+
 ## How to Use Archived Changes
 
 1. **Reference**: Review past changes for patterns and best practices
@@ -66,4 +111,4 @@ Each archived change is stored in a dated directory: `YYYY-MM-DD-change-name/`
 ---
 
 **Archive Maintained By**: OpenSpec Workflow  
-**Last Updated**: 2026-02-09
+**Last Updated**: 2026-03-10

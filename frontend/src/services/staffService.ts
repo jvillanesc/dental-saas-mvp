@@ -7,6 +7,13 @@ export const staffService = {
     return response.data;
   },
 
+  getActive: async (): Promise<Staff[]> => {
+    const response = await api.get('/staff', {
+      params: { active: true },
+    });
+    return response.data;
+  },
+
   getById: async (id: string): Promise<Staff> => {
     const response = await api.get(`/staff/${id}`);
     return response.data;

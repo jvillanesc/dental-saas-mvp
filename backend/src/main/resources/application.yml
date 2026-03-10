@@ -28,5 +28,6 @@ jwt:
 logging:
   level:
     root: INFO
-    com.dental: DEBUG
-    io.r2dbc.postgresql: DEBUG
+    com.dental: INFO
+    io.r2dbc.postgresql: INFO
+    org.springframework.data.r2dbc: INFO

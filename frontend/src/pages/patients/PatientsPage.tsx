@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { patientService } from '../../services/patientService';
 import { Patient } from '../../types/patient.types';
 import Button from '../../components/common/Button';
 import PatientModal from './PatientModal';
 
 const PatientsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [filteredPatients, setFilteredPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,6 +159,12 @@ const PatientsPage: React.FC = () => {
                         <div className="text-sm text-gray-900">{formatDate(patient.birthDate)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => navigate(`/patients/${patient.id}/detail`)}
+                          className="text-green-600 hover:text-green-900 mr-4"
+                        >
+                          Ver Detalle
+                        </button>
                         <button
                           onClick={() => handleEdit(patient)}
                           className="text-blue-600 hover:text-blue-900 mr-4"

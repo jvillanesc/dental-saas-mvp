@@ -22,4 +22,12 @@ public interface AppointmentRepository extends ReactiveCrudRepository<Appointmen
     
     @Query("SELECT * FROM appointments WHERE dentist_id = :dentistId AND start_time BETWEEN :startDate AND :endDate")
     Flux<Appointment> findByDentistIdAndDateRange(UUID dentistId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    @Query("SELECT * FROM appointments " +
+           "WHERE tenant_id = :tenantId " +
+           "AND (:dentistId IS NULL OR dentist_id = :dentistId) " +
+           "AND (:startDate IS NULL OR start_time >= :startDate) " +
+           "AND (:endDate IS NULL OR start_time <= :endDate) " +
+           "ORDER BY start_time ASC")
+    Flux<Appointment> findByTenantAndFilters(UUID tenantId, UUID dentistId, LocalDateTime startDate, LocalDateTime endDate);
 }

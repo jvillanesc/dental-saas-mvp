@@ -147,12 +147,13 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
 
       if (appointment) {
         await appointmentService.update(appointment.id, submitData);
+        onClose(true); // Cerrar y refrescar
         alert('Cita actualizada exitosamente');
       } else {
         await appointmentService.create(submitData);
+        onClose(true); // Cerrar y refrescar
         alert('Cita creada exitosamente');
       }
-      onClose(true);
     } catch (error: any) {
       console.error('Error saving appointment:', error);
       alert(error.response?.data?.message || 'Error al guardar cita');

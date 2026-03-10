@@ -11,8 +11,11 @@ import java.util.UUID;
 @Repository
 public interface StaffRepository extends ReactiveCrudRepository<Staff, UUID> {
     
-    @Query("SELECT * FROM staff WHERE tenant_id = :tenantId AND deleted_at IS NULL")
+    @Query("SELECT * FROM staff WHERE tenant_id = :tenantId AND deleted_at IS NULL ORDER BY last_name, first_name")
     Flux<Staff> findByTenantIdAndNotDeleted(UUID tenantId);
+    
+    @Query("SELECT * FROM staff WHERE tenant_id = :tenantId AND active = :active AND deleted_at IS NULL ORDER BY last_name, first_name")
+    Flux<Staff> findByTenantAndActive(UUID tenantId, Boolean active);
     
     @Query("SELECT * FROM staff WHERE id = :id AND tenant_id = :tenantId AND deleted_at IS NULL")
     Mono<Staff> findByIdAndTenantIdAndNotDeleted(UUID id, UUID tenantId);

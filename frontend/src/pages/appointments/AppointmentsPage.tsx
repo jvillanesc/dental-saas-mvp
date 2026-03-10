@@ -3,7 +3,9 @@ import { appointmentService } from '../../services/appointmentService';
 import { Appointment } from '../../types/appointment.types';
 import Button from '../../components/common/Button';
 import AppointmentModal from './AppointmentModal';
+import AppointmentStatusModal from '../../components/appointments/AppointmentStatusModal';
 import AppointmentCalendar from './AppointmentCalendar';
+import DentistSelector from '../../components/appointments/DentistSelector';
 
 const AppointmentsPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -12,6 +14,9 @@ const AppointmentsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
+  const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [appointmentForStatusChange, setAppointmentForStatusChange] = useState<Appointment | null>(null);
 
   function getMonday(date: Date): Date {
     const d = new Date(date);
@@ -22,7 +27,7 @@ const AppointmentsPage: React.FC = () => {
 
   useEffect(() => {
     loadAppointments();
-  }, [currentWeekStart]);
+  }, [currentWeekStart, selectedDentistId]);
 
   const loadAppointments = async () => {
     try {
@@ -34,7 +39,11 @@ const AppointmentsPage: React.FC = () => {
       const startDate = currentWeekStart.toISOString().split('T')[0];
       const endDate = weekEnd.toISOString().split('T')[0];
 
-      const data = await appointmentService.getByDateRange(startDate, endDate);
+      const data = await appointmentService.getByDateRange(
+        startDate, 
+        endDate, 
+        selectedDentistId || undefined
+      );
       setAppointments(data);
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -67,9 +76,17 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const handleEditAppointment = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setSelectedDateTime(null);
-    setIsModalOpen(true);
+    setAppointmentForStatusChange(appointment);
+    setIsStatusModalOpen(true);
+  };
+
+  const handleCloseStatusModal = () => {
+    setIsStatusModalOpen(false);
+    setAppointmentForStatusChange(null);
+  };
+
+  const handleStatusChanged = async () => {
+    await loadAppointments();
   };
 
   const handleDeleteAppointment = async (appointment: Appointment) => {
@@ -124,7 +141,18 @@ const AppointmentsPage: React.FC = () => {
               <Button onClick={() => handleCreateAppointment()}>Nueva Cita</Button>
             </div>
           </div>
-          <div className="mt-2 text-sm text-gray-600">{formatWeekRange()}</div>
+          
+          {/* Dentist Selector */}
+          <div className="mt-4 flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+            <DentistSelector
+              value={selectedDentistId}
+              onChange={setSelectedDentistId}
+              className="flex-shrink-0"
+            />
+            <div className="flex-grow text-sm text-gray-600 sm:text-right">
+              {formatWeekRange()}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -145,13 +173,23 @@ const AppointmentsPage: React.FC = () => {
         )}
       </main>
 
-      {/* Modal */}
+      {/* Edit Modal */}
       {isModalOpen && (
         <AppointmentModal
           isOpen={isModalOpen}
           onClose={handleModalClose}
           appointment={selectedAppointment}
           initialDateTime={selectedDateTime}
+        />
+      )}
+
+      {/* Status Change Modal */}
+      {isStatusModalOpen && appointmentForStatusChange && (
+        <AppointmentStatusModal
+          isOpen={isStatusModalOpen}
+          onClose={handleCloseStatusModal}
+          appointment={appointmentForStatusChange}
+          onStatusChanged={handleStatusChanged}
         />
       )}
     </div>
