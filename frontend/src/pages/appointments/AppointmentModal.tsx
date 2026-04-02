@@ -9,6 +9,7 @@ import { staffService } from '../../services/staffService';
 import { Appointment, CreateAppointmentDTO, APPOINTMENT_STATUSES } from '../../types/appointment.types';
 import { Patient } from '../../types/patient.types';
 import { Staff } from '../../types/staff.types';
+import { useToast } from '../../context/ToastContext';
 
 interface AppointmentModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
   appointment,
   initialDateTime,
 }) => {
+  const isEditMode = appointment !== null;
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [dentists, setDentists] = useState<Staff[]>([]);
@@ -139,24 +142,26 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
 
     try {
       setLoading(true);
-      // Convertir startTime a formato ISO completo
+      // Convertir startTime a ISO sin cambiar zona horaria
+      // datetime-local da formato "YYYY-MM-DDTHH:mm"
+      // Agregamos segundos y convertimos respetando la hora local
       const submitData = {
         ...formData,
-        startTime: new Date(formData.startTime).toISOString(),
+        startTime: formData.startTime + ':00',  // Agregar segundos
       };
 
       if (appointment) {
         await appointmentService.update(appointment.id, submitData);
+        toast.success('Cita actualizada exitosamente');
         onClose(true); // Cerrar y refrescar
-        alert('Cita actualizada exitosamente');
       } else {
         await appointmentService.create(submitData);
+        toast.success('Cita creada exitosamente');
         onClose(true); // Cerrar y refrescar
-        alert('Cita creada exitosamente');
       }
     } catch (error: any) {
       console.error('Error saving appointment:', error);
-      alert(error.response?.data?.message || 'Error al guardar cita');
+      toast.error(error.response?.data?.message || 'Error al guardar cita');
     } finally {
       setLoading(false);
     }
@@ -204,7 +209,7 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Fecha y Hora"
             name="startTime"
@@ -226,19 +231,6 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
             error={errors.durationMinutes}
             required
           />
-
-          <Select
-            label="Estado"
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            options={APPOINTMENT_STATUSES.map((s) => ({
-              value: s.value,
-              label: s.label,
-            }))}
-            error={errors.status}
-            required
-          />
         </div>
 
         <div>
@@ -254,6 +246,39 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
             placeholder="Notas adicionales sobre la cita..."
           />
         </div>
+
+        {isEditMode && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Seleccione el nuevo estado
+            </label>
+            <div className="space-y-2">
+              {APPOINTMENT_STATUSES.map((status) => (
+                <label
+                  key={status.value}
+                  className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                  htmlFor={`status-${status.value}`}
+                >
+                  <input
+                    id={`status-${status.value}`}
+                    type="radio"
+                    name="status"
+                    value={status.value}
+                    checked={formData.status === status.value}
+                    onChange={handleChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    disabled={loading}
+                  />
+                  <span className="ml-3">
+                    <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${status.color}`}>
+                      {status.label}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 mt-6">
           <Button

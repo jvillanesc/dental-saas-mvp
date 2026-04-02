@@ -84,6 +84,8 @@ dental2/
 
 ## 🚀 Quick Start
 
+> 📘 **First time setup?** See detailed configuration instructions in [SETUP.md](SETUP.md)
+
 ### Prerequisites
 
 - Docker & Docker Compose

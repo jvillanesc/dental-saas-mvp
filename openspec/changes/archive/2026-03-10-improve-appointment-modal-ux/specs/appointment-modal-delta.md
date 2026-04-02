@@ -1,40 +1,6 @@
-# Appointment Specification
+# Delta Specs: Appointment Modal UX
 
-## Purpose
-
-Management of appointments in the dental clinic system.
-
-## Domain Model
-
-### Entity: Appointment
-- **Table**: `appointments`
-- **Multi-tenant**: ✅ Yes
-- **Soft Delete**: ❌ No
-
-**Fields:**
-- id: UUID
-- tenantId: UUID
-- patientId: UUID
-- dentistId: UUID
-- startTime: LocalDateTime
-- durationMinutes: Integer
-- status: String
-- notes: String
-- createdAt: LocalDateTime
-- updatedAt: LocalDateTime
-
-## Requirements
-
-### Requirement: Multi-Tenant Isolation
-The system SHALL ensure that appointments are isolated by tenant.
-
-#### Scenario: Tenant data isolation
-- GIVEN a user authenticated with tenantId A
-- WHEN the user requests appointments
-- THEN only appointments belonging to tenant A are returned
-- AND appointments from other tenants are never visible
-
----
+## MODIFIED Requirements
 
 ### Requirement: Appointment Creation Modal
 **Domain**: Appointment Management  
@@ -138,7 +104,9 @@ The status selection in edit mode **SHALL** use radio buttons with visual color 
 
 ---
 
-### Requirement: Appointment Status Quick Change Modal (DEPRECATED)
+## MODIFIED Requirements (Deprecation)
+
+### Requirement: Appointment Status Quick Change Modal
 **Domain**: Appointment Management  
 **Status**: DEPRECATED  
 **Priority**: Low
@@ -155,3 +123,23 @@ The standalone `AppointmentStatusModal` component is **DEPRECATED** as of 2026-0
 #### Reason for Deprecation:
 The functionality has been integrated into `AppointmentModal` to provide a unified user experience where all appointment attributes (including status) can be modified in a single modal interface.
 
+---
+
+## Implementation Notes
+
+### Multi-Tenancy
+- All appointment operations MUST respect tenant context
+- Existing tenant filtering is maintained (no changes to backend)
+
+### Security
+- JWT authentication remains enforced
+- No changes to authorization logic
+
+### Reactive Patterns
+- Existing service layer using Mono/Flux remains unchanged
+- Only frontend UI components are modified
+
+### Backward Compatibility
+- Existing `appointmentService.create()` and `appointmentService.update()` endpoints are unchanged
+- Calendar refresh mechanism (passing `true` to `onClose()`) is maintained
+- No breaking changes to component props or interfaces

@@ -1,3 +1,12 @@
+/**
+ * @deprecated This component is deprecated as of 2026-03-10.
+ * Use AppointmentModal in edit mode instead, which now includes
+ * status selection functionality with the same visual design.
+ * 
+ * This file is kept for backward compatibility and may be removed
+ * in a future major version.
+ */
+
 import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';

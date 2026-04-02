@@ -3,11 +3,12 @@ import { appointmentService } from '../../services/appointmentService';
 import { Appointment } from '../../types/appointment.types';
 import Button from '../../components/common/Button';
 import AppointmentModal from './AppointmentModal';
-import AppointmentStatusModal from '../../components/appointments/AppointmentStatusModal';
 import AppointmentCalendar from './AppointmentCalendar';
 import DentistSelector from '../../components/appointments/DentistSelector';
+import { useToast } from '../../context/ToastContext';
 
 const AppointmentsPage: React.FC = () => {
+  const toast = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(getMonday(new Date()));
@@ -15,8 +16,6 @@ const AppointmentsPage: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedDateTime, setSelectedDateTime] = useState<Date | null>(null);
   const [selectedDentistId, setSelectedDentistId] = useState<string | null>(null);
-  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-  const [appointmentForStatusChange, setAppointmentForStatusChange] = useState<Appointment | null>(null);
 
   function getMonday(date: Date): Date {
     const d = new Date(date);
@@ -47,7 +46,7 @@ const AppointmentsPage: React.FC = () => {
       setAppointments(data);
     } catch (error) {
       console.error('Error loading appointments:', error);
-      alert('Error al cargar citas');
+      toast.error('Error al cargar citas');
     } finally {
       setLoading(false);
     }
@@ -76,17 +75,9 @@ const AppointmentsPage: React.FC = () => {
   };
 
   const handleEditAppointment = (appointment: Appointment) => {
-    setAppointmentForStatusChange(appointment);
-    setIsStatusModalOpen(true);
-  };
-
-  const handleCloseStatusModal = () => {
-    setIsStatusModalOpen(false);
-    setAppointmentForStatusChange(null);
-  };
-
-  const handleStatusChanged = async () => {
-    await loadAppointments();
+    setSelectedAppointment(appointment);
+    setSelectedDateTime(null);
+    setIsModalOpen(true);
   };
 
   const handleDeleteAppointment = async (appointment: Appointment) => {
@@ -97,10 +88,10 @@ const AppointmentsPage: React.FC = () => {
     try {
       await appointmentService.delete(appointment.id);
       await loadAppointments();
-      alert('Cita eliminada exitosamente');
+      toast.success('Cita eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting appointment:', error);
-      alert('Error al eliminar cita');
+      toast.error('Error al eliminar cita');
     }
   };
 
@@ -173,23 +164,13 @@ const AppointmentsPage: React.FC = () => {
         )}
       </main>
 
-      {/* Edit Modal */}
+      {/* Appointment Modal - Create or Edit */}
       {isModalOpen && (
         <AppointmentModal
           isOpen={isModalOpen}
           onClose={handleModalClose}
           appointment={selectedAppointment}
           initialDateTime={selectedDateTime}
-        />
-      )}
-
-      {/* Status Change Modal */}
-      {isStatusModalOpen && appointmentForStatusChange && (
-        <AppointmentStatusModal
-          isOpen={isStatusModalOpen}
-          onClose={handleCloseStatusModal}
-          appointment={appointmentForStatusChange}
-          onStatusChanged={handleStatusChanged}
         />
       )}
     </div>
